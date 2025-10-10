@@ -42,11 +42,15 @@ jobs:
 
       - name: Run the data pipeline
         run: just
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the site
         run: just build_site
 
       - name: Commit changes to data/big-time.jsonl
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
