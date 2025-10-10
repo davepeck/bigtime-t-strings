@@ -3,6 +3,7 @@ BIG_TIME_PATH := "data/big-time.jsonl"
 OLD_BIG_TIME_PATH := "data/OLD-big-time.jsonl"
 UPDATE_PATH := "data/updates.jsonl"
 BIG_TIME_UPDATES_PATH := "data/updated-big-time.jsonl"
+INDEX_HTML := "dist/index.html"
 
 
 default: find_repos identify_updates process_updates merge_big_time
@@ -40,3 +41,6 @@ deep_clean: clean
     rm -f {{BIG_TIME_PATH}}
     rm -f data/*.jsonl
 
+build_site:
+    mkdir -p dist
+    uv run python bigtime.py build-site {{BIG_TIME_PATH}} > dist/index.html

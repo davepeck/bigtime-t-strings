@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BIG TIME T-STRINGS!</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 768px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        color: white;
+        padding: 40px 20px 30px;
+        text-align: center;
+      }
+
+      .title {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+        background: linear-gradient(45deg, #fff, #ffeb3b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .description {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.5;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        font-size: 0.9rem;
+      }
+
+      th {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.8rem;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        vertical-align: top;
+      }
+
+      tr:hover {
+        background-color: #f8f9ff;
+      }
+
+      .repo-name {
+        font-weight: 600;
+        color: #2563eb;
+      }
+
+      .repo-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .repo-link:hover {
+        text-decoration: underline;
+      }
+
+      .description-cell {
+        max-width: 200px;
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
+
+      .number {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .t-strings {
+        color: #dc2626;
+      }
+
+      .lines {
+        color: #059669;
+      }
+
+      .stars {
+        color: #d97706;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 10px;
+        }
+
+        .header {
+          padding: 30px 15px 25px;
+        }
+
+        .content {
+          padding: 20px 15px;
+        }
+
+        th,
+        td {
+          padding: 10px 8px;
+        }
+
+        .description-cell {
+          max-width: 150px;
+        }
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 0.9rem;
+        background: #f8f9fa;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 class="title">BIG TIME T-STRINGS!</h1>
+        <p class="description">
+          Here's a list of public repositories on GitHub that are making use of
+          Python 3.14's new t-string feature, ranked by just how BIG TIME their
+          use really is.
+        </p>
+      </div>
+
+      <div class="content">
+        {% if repos %}
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Repository</th>
+                <th>Description</th>
+                <th>T-Strings Found</th>
+                <th>Lines</th>
+                <th>Stars</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for repo in repos %}
+              <tr>
+                <td>
+                  <a
+                    href="{{ repo.url }}"
+                    class="repo-link"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    {{ repo.name_with_owner }}
+                  </a>
+                </td>
+                <td class="description-cell">
+                  {{ repo.description or "No description available" }}
+                </td>
+                <td class="number t-strings">
+                  {{ "{:,}".format(repo.t_string_count) }}
+                </td>
+                <td class="number lines">
+                  {{ "{:,}".format(repo.line_count) }}
+                </td>
+                <td class="number stars">
+                  {{ "{:,}".format(repo.stargazers) }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <p>No repositories found yet. Check back soon!</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="footer">
+        <p>
+          Data collected from public GitHub repositories • Last updated on {{
+          last_updated }}
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

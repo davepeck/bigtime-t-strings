@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import click
+from jinja2 import Environment, FileSystemLoader
 
 
 @click.group()
@@ -487,10 +488,14 @@ def merge_state(old_path: Path, new_path: Path):
 
 def t_string_power(repo: BigTimeRepo) -> float:
     """Calculate a "t-string power" metric for ranking repositories."""
+
     if repo["line_count"] == 0:
         return 0
     if repo["t_string_count"] == 0:
         return 0
+
+    # This is pretty dang arbitrary. We might consider pushing stargazers
+    # into a logarithm or something, but for now this is fine.
     return repo["t_string_count"] / repo["line_count"] * (repo["stargazers"] + 1.0)
 
 
@@ -532,6 +537,43 @@ def top_repos(state_path: Path, asjson: bool):
         click.echo(
             f"{repo['name_with_owner']:<30} {repo['t_string_count']:>9} {repo['line_count']:>8} {repo['templatelib_imports']:>8} {repo['stargazers']:>8} {power:>8.1f}"
         )
+
+
+# -------------------------------------------------------------------------
+# build-site
+# -------------------------------------------------------------------------
+
+
+@bigtime.command()
+@click.argument("state_path", type=click.Path(exists=True, path_type=Path))
+def build_site(state_path: Path):
+    """
+    Build the HTML site using the state data and render to stdout.
+
+    STATE_PATH is a path to a file containing json lines of repository state.
+    """
+    from datetime import datetime
+
+    # Load the state data
+    with open(state_path, "r", encoding="utf-8") as f:
+        state = t.cast(list[BigTimeRepo], [json.loads(line) for line in f])
+
+    # Get the top repositories
+    top_repositories = build_top_repos(state)
+
+    # Set up Jinja2 environment
+    template_dir = Path(__file__).parent / "templates"
+    env = Environment(loader=FileSystemLoader(template_dir))
+    template = env.get_template("index.html")
+
+    # Get current date in the desired format
+    last_updated = datetime.now().strftime("%b %d, %Y")
+
+    # Render the template
+    html = template.render(repos=top_repositories, last_updated=last_updated)
+
+    # Output to stdout
+    click.echo(html)
 
 
 if __name__ == "__main__":
