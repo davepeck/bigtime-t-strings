@@ -44,3 +44,4 @@ deep_clean: clean
 build_site:
     mkdir -p dist
     uv run python bigtime.py build-site {{BIG_TIME_PATH}} > dist/index.html
+    cp public/* dist/
