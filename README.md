@@ -1,2 +1,7 @@
-# find-repos
-Tool to identify repositories that are making use of t-strings in their Python 3.14 code.
+# Big Time T-Strings
+
+https://bigtime.t-strings.help/
+
+This website contains GitHub Actions automation to automatically find Python repositories that are using t-strings and decide just how much they're using them.
+
+How BIG TIME are those t-strings?!
