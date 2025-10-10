@@ -567,7 +567,7 @@ def build_site(state_path: Path):
     template = env.get_template("index.html")
 
     # Get current date in the desired format
-    last_updated = datetime.now().strftime("%b %d, %Y")
+    last_updated = datetime.now().strftime("%A, %b %d, %Y")
 
     # Render the template
     html = template.render(repos=top_repositories, last_updated=last_updated)

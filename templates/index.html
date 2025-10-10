@@ -23,10 +23,10 @@
       content="Public GitHub repositories using Python 3.14's new t-string feature, ranked by usage."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://bigtime.t-strings.com" />
+    <meta property="og:url" content="https://bigtime.t-strings.help" />
     <meta
       property="og:image"
-      content="https://bigtime.t-strings.com/og-image.png"
+      content="https://bigtime.t-strings.help/og-image.png"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -41,7 +41,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://bigtime.t-strings.com/og-image.png"
+      content="https://bigtime.t-strings.help/og-image.png"
     />
 
     <style>
@@ -220,6 +220,14 @@
       .top-link:hover {
         color: #eee;
       }
+
+      .bottom-link {
+        opacity: 0.6;
+      }
+
+      .bottom-link:hover {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -287,8 +295,14 @@
 
       <div class="footer">
         <p>
-          Data collected from public GitHub repositories • Last updated on {{
-          last_updated }}
+          Data
+          <a
+            href="https://github.com/davepeck/bigtime-t-strings/"
+            target="_blank"
+            class="bottom-link"
+            >collected</a
+          >
+          from public GitHub repositories • Last updated on {{ last_updated }}
         </p>
       </div>
     </div>
