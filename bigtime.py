@@ -2,6 +2,7 @@ import ast
 import json
 import subprocess
 import typing as t
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -105,7 +106,6 @@ def invoke_gh_cli(args: list[str]) -> str:
 
 def shallow_clone_repo(git_url: str, clone_path: Path) -> None:
     """Shallow clone a git repository."""
-    # click.echo(f"Cloning {git_url}...", err=True)
     subprocess.run(
         [
             "git",
@@ -158,7 +158,9 @@ def parse_python_file(path: Path) -> ast.Module:
     """Parse a Python file and return its AST."""
     with open(path, "r", encoding="utf-8") as file:
         content = file.read()
-    return ast.parse(content, filename=str(path))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return ast.parse(content, filename=str(path))
 
 
 def count_literals_and_check_imports(path: Path) -> tuple[int, bool]:
@@ -168,7 +170,7 @@ def count_literals_and_check_imports(path: Path) -> tuple[int, bool]:
     """
     try:
         tree = parse_python_file(path)
-    except SyntaxError:
+    except (SyntaxError, UnicodeDecodeError, OSError):
         return 0, False
     return count_t_string_literals_in_ast(tree), does_ast_import_templatelib(tree)
 
@@ -190,8 +192,11 @@ def count_literals_and_import_files_in_repo(repo_path: Path) -> tuple[int, int]:
 
 def count_python_lines_in_file(path: Path) -> int:
     """Count the number of lines in a Python file, ignoring empty lines and comments."""
-    with open(path, "r", encoding="utf-8") as file:
-        lines = file.readlines()
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+    except (UnicodeDecodeError, OSError):
+        return 0
     return sum(1 for line in lines if line.strip() and not line.strip().startswith("#"))
 
 
@@ -208,12 +213,23 @@ def count_python_lines_in_repo(repo_path: Path) -> int:
 # -----------------------------------------------------------------------
 
 
+SPAMMY_USERS = ["poisontr33s"]
+
+
+def is_maybe_spammy(item: MatchingRepoAndFile) -> bool:
+    """Heuristic to identify spammy repositories."""
+    # Sigh.
+    name = item["repository"]["nameWithOwner"].lower()
+    return any(name.startswith(f"{user}/") for user in SPAMMY_USERS)
+
+
 def filter_repo_match(item: MatchingRepoAndFile) -> bool:
     """Filter repo matches to only top-level pyproject.toml files in non-fork, non-private repos."""
     return (
         item["path"] == "pyproject.toml"
         and not item["repository"]["isFork"]
         and not item["repository"]["isPrivate"]
+        and not is_maybe_spammy(item)
     )
 
 
@@ -297,7 +313,7 @@ def process_updates(updates_path: Path):
         updates = t.cast(list[MatchingRepoAndFile], [json.loads(line) for line in f])
 
     for update in updates:
-        click.echo(f"Processing {update['repository']['nameWithOwner']}...", err=True)
+        click.echo(f"Processing: {update['repository']['nameWithOwner']}", err=True)
         big_time_repo = process_single_update(update)
         click.echo(json.dumps(big_time_repo))
 

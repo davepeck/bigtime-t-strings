@@ -4,7 +4,12 @@ version = "0.1.0"
 description = "Find repositories that use Python 3.14's t-string literals"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = ["click>=8.3.0", "pyright>=1.1.406", "ruff>=0.14.0"]
+dependencies = [
+    "click>=8.3.0",
+    "jinja2>=3.1.6",
+    "pyright>=1.1.406",
+    "ruff>=0.14.0",
+]
 
 
 [tool.pyright]
