@@ -208,3 +208,5 @@ __marimo__/
 
 # Built site
 dist/
+
+.DS_Store
