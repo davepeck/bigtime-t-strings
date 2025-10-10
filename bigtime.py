@@ -514,7 +514,7 @@ def top_repos(state_path: Path, asjson: bool):
     for repo in top_repos:
         power = t_string_power(repo)
         click.echo(
-            f"{repo['name_with_owner']:<30} {repo['t_string_count']:>9} {repo['line_count']:>8} {repo['templatelib_imports']:>8} {repo['stargazers']:>8} {power:>8.4f}"
+            f"{repo['name_with_owner']:<30} {repo['t_string_count']:>9} {repo['line_count']:>8} {repo['templatelib_imports']:>8} {repo['stargazers']:>8} {power:>8.1f}"
         )
 
 
