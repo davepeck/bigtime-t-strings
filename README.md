@@ -2,7 +2,7 @@
 
 The code behind https://bigtime.t-strings.help/
 
-Big Time searches for public Python repositories that are using t-strings, and ranks them by how just how "BIG TIME" their usage really is.
+Big Time searches for public Python repositories that use t-strings and ranks them by how just how "BIG TIME" their usage really is.
 
 Specifically, it:
 
