@@ -51,6 +51,9 @@ class MatchingRepoAndFile(t.TypedDict, total=True):
     repository: MatchingRepo
     """Details about the repository containing the matching file."""
 
+    deleted: t.NotRequired[bool]
+    """Indicates if the repository has been deleted since we last checked."""
+
 
 class BigTimeRepo(t.TypedDict, total=True):
     """Represents a repository we are tracking."""
@@ -261,21 +264,19 @@ def find_repos():
 
 
 # -------------------------------------------------------------------------
-# identify-updates
+# process-updates
 # -------------------------------------------------------------------------
 
 
 @bigtime.command()
 @click.option("-r", "--repos_path", type=click.Path(exists=True, path_type=Path))
 @click.option("-s", "--state_path", type=click.Path(path_type=Path))
-def identify_updates(repos_path: Path, state_path: Path):
+def process_updates(repos_path: Path, state_path: Path):
     """
-    Identify which repos have been updated since we last checked them.
+    Identify (a) new or updated repositories from REPOS_PATH against STATE_PATH,
+    and (b) deleted repositories from STATE_PATH that are not in REPOS_PATH.
 
-    REPOS_PATH is a path to a file containing json lines of repos to check.
-    STATE_PATH is a path to a json file containing the last known state.
-
-    Emit json lines of repos that have been updated (or are new).
+    Emit the new system state to stdout.
     """
     click.echo("Identifying new or updated repositories...", err=True)
     with open(repos_path, "r", encoding="utf-8") as f:
@@ -287,36 +288,33 @@ def identify_updates(repos_path: Path, state_path: Path):
             state = t.cast(list[BigTimeRepo], [json.loads(line) for line in f])
 
     state_map = {repo["name_with_owner"]: repo for repo in state}
-    updates: list[MatchingRepoAndFile] = []
-    for repo in repos:
-        name_with_owner = repo["repository"]["nameWithOwner"]
-        sha = repo["sha"]
+    repos_map = {repo["repository"]["nameWithOwner"]: repo for repo in repos}
 
-        if (
-            name_with_owner not in state_map
-            or state_map[name_with_owner]["last_checked_sha"] != sha
-        ):
-            updates.append(repo)
+    # Rarely, a repository might be deleted. We should handle that.
+    deleted_repos = set(state_map.keys()) - set(repos_map.keys())
+    if deleted_repos:
+        click.echo(
+            f"Found {len(deleted_repos)} deleted repositories:",
+            err=True,
+        )
+        for name in deleted_repos:
+            click.echo(f"  - Deleting {name}", err=True)
+            del state_map[name]
 
-    for update in updates:
+    # Identify new or updated repositories and process them
+    new_or_updated_repos = set(repos_map.keys()) - set(state_map.keys())
+    if new_or_updated_repos:
+        click.echo(
+            f"Found {len(new_or_updated_repos)} new or updated repositories:",
+            err=True,
+        )
+        for name in new_or_updated_repos:
+            click.echo(f"  - Processing {name}", err=True)
+            big_time_repo = process_single_update(repos_map[name])
+            state_map[name] = big_time_repo
+
+    for update in state_map.values():
         click.echo(json.dumps(update))
-
-
-# -------------------------------------------------------------------------
-# process-updates
-# -------------------------------------------------------------------------
-
-
-@bigtime.command()
-@click.option("-u", "--updates_path", type=click.Path(exists=True, path_type=Path))
-def process_updates(updates_path: Path):
-    with open(updates_path, "r", encoding="utf-8") as f:
-        updates = t.cast(list[MatchingRepoAndFile], [json.loads(line) for line in f])
-
-    for update in updates:
-        click.echo(f"Processing: {update['repository']['nameWithOwner']}", err=True)
-        big_time_repo = process_single_update(update)
-        click.echo(json.dumps(big_time_repo))
 
 
 def process_single_update(update: MatchingRepoAndFile) -> BigTimeRepo:
@@ -443,42 +441,6 @@ def get_repository_code_stats(name_with_owner: str) -> CodeStats:
         line_count = count_python_lines_in_repo(repo_path)
         file_count = sum(1 for _ in repo_path.rglob("*.py"))
     return CodeStats(t_string_count, import_files, line_count, file_count)
-
-
-# -------------------------------------------------------------------------
-# merge-state
-# -------------------------------------------------------------------------
-
-
-@bigtime.command()
-@click.option("-o", "--old_path", type=click.Path(path_type=Path))
-@click.option("-n", "--new_path", type=click.Path(exists=True, path_type=Path))
-def merge_state(old_path: Path, new_path: Path):
-    """
-    Merge old state with new state, preferring new state entries.
-
-    OLD_PATH is a path to a file containing json lines of old state.
-    NEW_PATH is a path to a file containing json lines of new state.
-
-    Emit merged json lines to stdout.
-    """
-    click.echo("Merging old and new state...", err=True)
-    old_state: list[BigTimeRepo] = []
-    if old_path.exists():
-        with open(old_path, "r", encoding="utf-8") as f:
-            old_state = t.cast(list[BigTimeRepo], [json.loads(line) for line in f])
-
-    new_state: list[BigTimeRepo] = []
-    with open(new_path, "r", encoding="utf-8") as f:
-        new_state = t.cast(list[BigTimeRepo], [json.loads(line) for line in f])
-
-    state_map = {repo["name_with_owner"]: repo for repo in old_state}
-    for repo in new_state:
-        state_map[repo["name_with_owner"]] = repo
-
-    merged_state = list(state_map.values())
-    for repo in merged_state:
-        click.echo(json.dumps(repo))
 
 
 # -------------------------------------------------------------------------
