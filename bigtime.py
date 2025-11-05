@@ -217,12 +217,13 @@ def count_python_lines_in_repo(repo_path: Path) -> int:
 # -----------------------------------------------------------------------
 
 
-SPAMMY_USERS = ["poisontr33s"]
+SPAMMY_USERS = ["poisontr33s", "will-henney"]
 
 
 def is_maybe_spammy(item: MatchingRepoAndFile) -> bool:
     """Heuristic to identify spammy repositories."""
-    # Sigh.
+    # Sigh. Not all are actually spammy; some are just enormous in weird
+    # ways that our clone command still chokes on.
     name = item["repository"]["nameWithOwner"].lower()
     return any(name.startswith(f"{user}/") for user in SPAMMY_USERS)
 
