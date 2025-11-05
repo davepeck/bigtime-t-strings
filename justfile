@@ -4,8 +4,12 @@ BIG_TIME_UPDATES_PATH := "data/updated-big-time.jsonl"
 INDEX_HTML := "dist/index.html"
 
 
-default: find_repos process_updates
+default: do_nothing 
 
+# find_repos process_updates
+
+do_nothing:
+    @echo "Temporarily doing nothing..."
 
 find_repos:
     # Find repositories with top-level pyproject.toml specifying requires-python >=3.14
